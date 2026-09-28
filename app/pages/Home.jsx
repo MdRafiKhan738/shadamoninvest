@@ -28,7 +28,12 @@ const FONT_LOGO = "var(--font-logo), 'Fraunces', Georgia, serif"
 /*  illustration automatically if the file is missing.                         */
 /* -------------------------------------------------------------------------- */
 const HERO_IMAGE = '/images/hero-woman.jpg'
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://shadamon.com'
+
+// The marketing homepage must hand users off to the CURRENT Shadamon
+// investment dashboard. Keep this separate from the legacy donor frontend.
+const DASHBOARD_URL =
+  process.env.NEXT_PUBLIC_DASHBOARD_URL ||
+  'https://currentshadamon.vercel.app/dashboard'
 
 /* -------------------------------------------------------------------------- */
 /*  Copy (Bangla is default, English toggle via the top-right language button) */
@@ -203,50 +208,40 @@ const HeroFallback = () => (
       <circle cx="200" cy="90" r="46" fill="#e0a37e" />
       <path d="M150 90c0-40 30-60 60-55 30 3 45 30 40 55-10-20-30-30-50-28-25 2-40 12-50 28z" fill="#2b1a14" />
       <path d="M120 250c0-55 35-95 80-95s80 40 80 95z" fill="#d9642b" />
-      {[0, 1, 2, 3, 4].map((i) => (
-        <rect key={i} x={30 + i * 64} y={230 - (i % 2) * 14} width="44" height="70" rx="6" fill="#d9c8a6" opacity="0.9" />
-      ))}
+      <rect x="285" y="175" width="65" height="14" rx="7" fill="#e6bd4f" />
+      <rect x="292" y="160" width="58" height="14" rx="7" fill="#f1ce61" />
+      <rect x="300" y="145" width="50" height="14" rx="7" fill="#e6bd4f" />
+      <rect x="306" y="130" width="44" height="14" rx="7" fill="#f1ce61" />
+      <circle cx="328" cy="137" r="5" fill="#fff1a8" />
     </svg>
   </div>
 )
 
-/* -------------------------------------------------------------------------- */
-/*  Page                                                                      */
-/* -------------------------------------------------------------------------- */
-const Home = () => {
+export default function Home() {
   const reduce = useReducedMotion()
   const [lang, setLang] = useState('bn')
-  const [imgOk, setImgOk] = useState(true)
   const [scrolled, setScrolled] = useState(false)
-
-  /* PWA install */
-  const [deferredPrompt, setDeferredPrompt] = useState(null)
   const [installed, setInstalled] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState(null)
   const [flashHint, setFlashHint] = useState(false)
+  const [imgOk, setImgOk] = useState(true)
 
   const t = COPY[lang]
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8)
+    const onScroll = () => setScrolled(window.scrollY > 10)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
-  useEffect(() => {
-    const onPrompt = (e) => {
-      e.preventDefault()
-      setDeferredPrompt(e)
+    const onBeforeInstallPrompt = (event) => {
+      event.preventDefault()
+      setDeferredPrompt(event)
     }
-    const onInstalled = () => {
-      setInstalled(true)
-      setDeferredPrompt(null)
-    }
-    window.addEventListener('beforeinstallprompt', onPrompt)
-    window.addEventListener('appinstalled', onInstalled)
+
+    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt)
     return () => {
-      window.removeEventListener('beforeinstallprompt', onPrompt)
-      window.removeEventListener('appinstalled', onInstalled)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt)
     }
   }, [])
 
@@ -386,7 +381,7 @@ const Home = () => {
             >
               <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }} className="sm:w-[212px]">
                 <Link
-                  href={`${APP_URL}/d?role=investor`}
+                  href={`${DASHBOARD_URL}?cat=investor`}
                   className="group flex min-h-[62px] w-full items-center gap-3 rounded-xl bg-white px-4 shadow-[0_8px_28px_rgba(255,255,255,0.10)] transition-shadow hover:shadow-[0_12px_34px_rgba(140,120,255,0.35)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b7abf3]"
                 >
                   <TrendingUp
@@ -402,7 +397,7 @@ const Home = () => {
 
               <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }} className="sm:w-[212px]">
                 <Link
-                  href={`${APP_URL}/d?role=business_owner`}
+                  href={`${DASHBOARD_URL}?cat=business_owner`}
                   className="group flex min-h-[62px] w-full items-center gap-3 rounded-xl border border-[#6f5bd8] bg-[#136b50] px-4 transition-shadow hover:shadow-[0_12px_34px_rgba(19,107,80,0.55)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b7abf3]"
                 >
                   <Building2
@@ -521,158 +516,123 @@ const Home = () => {
               {installed ? t.appDone : t.appBtn}
             </motion.button>
 
-            <motion.p
-              animate={
-                flashHint
-                  ? { backgroundColor: 'rgba(109,79,214,0.14)', scale: 1.02 }
-                  : { backgroundColor: 'rgba(109,79,214,0)', scale: 1 }
-              }
-              transition={{ duration: 0.35 }}
-              className="mt-3 max-w-[400px] origin-left rounded px-1 py-0.5 text-[11px] leading-[1.6] text-[#8a8a9c]"
+            <p
+              className={`mt-3 max-w-[420px] text-[11.5px] leading-[1.6] text-[#77778a] transition-opacity duration-300 ${
+                flashHint ? 'opacity-100' : 'opacity-0'
+              }`}
             >
               {t.appHint}
-            </motion.p>
+            </p>
           </motion.div>
 
-          {/* phone mock-up */}
           <motion.div
             initial={reduce ? false : { opacity: 0, x: 26 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: '-60px' }}
             transition={{ duration: 0.65, ease: EASE }}
-            className="relative mx-auto flex h-[330px] w-full max-w-[380px] items-center justify-center"
+            className="flex justify-center md:justify-end"
           >
-            {/* soft blobs */}
-            <div className="absolute left-1/2 top-1/2 h-[290px] w-[290px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#f1ecfc]" />
-            <div className="absolute right-[12%] top-[26%] h-[120px] w-[120px] rounded-full bg-[#ffe7c9]/80" />
-            <div className="absolute left-[14%] top-[52%] h-[90px] w-[90px] rounded-full bg-[#e3dcfa]/80" />
-
-            {/* sparks */}
-            <svg
-              viewBox="0 0 60 60"
-              className="absolute left-[16%] top-[8%] h-12 w-12 text-[#f59e42]"
-              aria-hidden="true"
-            >
-              <g stroke="currentColor" strokeWidth="2.500" strokeLinecap="round">
-                <line x1="8" y1="30" x2="22" y2="30" />
-                <line x1="12" y1="14" x2="22" y2="22" />
-                <line x1="30" y1="6" x2="30" y2="18" />
-              </g>
-            </svg>
-
-            <motion.div
-              animate={reduce ? undefined : { y: [0, -9, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-              className="relative z-10"
-            >
-              <div className="relative h-[300px] w-[172px] rounded-[30px] border-[6px] border-[#14141c] bg-white shadow-[0_24px_50px_rgba(40,30,100,0.28)]">
-                <div className="absolute left-1/2 top-1.5 h-[9px] w-[54px] -translate-x-1/2 rounded-full bg-[#14141c]" />
-                <div className="flex h-full flex-col items-center px-4 pt-[52px]">
-                  <BrandMark className="h-10 w-12" />
-                  <Logo className="mt-1.5 text-[17px] text-[#1b1533]" />
-                  <p className="mt-1 text-center text-[7.5px] leading-tight text-[#8a8a9c]">
-                    {t.tagline}
-                  </p>
-
-                  <div className="mt-auto mb-5 flex w-full flex-col gap-2">
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      className="flex h-[30px] cursor-pointer items-center gap-2 rounded-lg border border-[#e6e4f3] bg-white px-3 text-[9.5px] font-semibold text-[#22222e] shadow-sm"
-                    >
-                      <GooglePlayIcon />
-                      Google Play
-                    </motion.div>
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      className="flex h-[30px] cursor-pointer items-center gap-2 rounded-lg border border-[#e6e4f3] bg-white px-3 text-[9.5px] font-semibold text-[#22222e] shadow-sm"
-                    >
-                      <Apple size={13} className="text-[#22222e]" fill="#22222e" />
-                      App Store
-                    </motion.div>
+            <div className="relative w-[270px] rounded-[28px] border border-[#dddbea] bg-[#f7f6fc] p-3 shadow-[0_18px_45px_rgba(60,50,130,0.14)]">
+              <div className="h-[350px] rounded-[20px] bg-[#111118] p-4 text-white">
+                <div className="flex items-center gap-2">
+                  <BrandMark className="h-7 w-7" />
+                  <div>
+                    <p className="text-[10px] font-medium text-white/60">Shadamon</p>
+                    <p className="text-[14px] font-bold">{lang === 'bn' ? 'নোটিফিকেশন' : 'Notifications'}</p>
                   </div>
                 </div>
+                <div className="mt-5 space-y-3">
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="rounded-xl bg-white/8 p-3">
+                      <div className="h-2 w-24 rounded bg-white/20" />
+                      <div className="mt-2 h-2 w-40 rounded bg-white/10" />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* ------------------------------ WHY US ------------------------------ */}
+      {/* ------------------------------- WHY -------------------------------- */}
       <section className="bg-[#f3f3fa]">
-        <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 cursor-pointer">
+        <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
           <motion.h2
-            initial={reduce ? false : { opacity: 0, y: 12 }}
+            initial={reduce ? false : { opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, ease: EASE }}
-            className="text-center text-[14px] font-medium text-[#22222e]"
-            
+            className="text-center text-[22px] font-extrabold text-[#12121a]"
           >
             {t.whyTitle}
           </motion.h2>
 
-          <motion.ul
+          <motion.div
             variants={stagger}
             initial={reduce ? false : 'hidden'}
             whileInView="show"
-            viewport={{ once: true, margin: '-40px' }}
-            className="mx-auto mt-7 grid max-w-3xl grid-cols-2 gap-y-7 md:grid-cols-4 cursor-pointer"
+            viewport={{ once: true, margin: '-60px' }}
+            className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4"
           >
-            {t.features.map((label, i) => {
+            {t.features.map((f, i) => {
               const Icon = FEATURE_ICONS[i]
               return (
-                <motion.li
-                  key={label}
+                <motion.div
+                  key={f}
                   variants={cardIn}
-                  className="group flex cursor-default flex-col items-center gap-2.5"
+                  className="rounded-xl border border-[#e5e3f0] bg-white px-3 py-4 text-center"
                 >
-                  <motion.span
-                    whileHover={{ y: -4, rotate: -4 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 16 }}
-                    className="flex h-10 w-10 items-center justify-center rounded-full text-[#5b43c2] transition-colors duration-300 group-hover:bg-[#e8e2fb] cursor-pointer`"
-                  >
-                    <Icon size={20} strokeWidth={1.8} />
-                  </motion.span>
-                  <span className="text-[12.5px] text-[#2c2c3a]">{label}</span>
-                </motion.li>
+                  <Icon className="mx-auto h-5 w-5 text-[#6a4fc8]" strokeWidth={2} />
+                  <p className="mt-2 text-[12px] font-semibold text-[#30303d]">{f}</p>
+                </motion.div>
               )
             })}
-          </motion.ul>
+          </motion.div>
         </div>
       </section>
 
       {/* ------------------------------ FOOTER ------------------------------ */}
-      <footer className="bg-[#0a0a0a] text-white">
-        <div className="mx-auto grid max-w-6xl gap-8 px-5 py-9 sm:px-8 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
-          <div>
-            <Logo className="text-[22px] text-white" />
-            <p className="mt-2 max-w-[230px] text-[11.5px] leading-[1.6] text-white/60">
-              {t.footDesc}
-            </p>
-            <p className="mt-2 text-[10.5px] text-white/40">{t.copyright}</p>
+      <footer className="bg-[#0a0a12] text-white">
+        <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
+          <div className="grid gap-8 sm:grid-cols-[1.4fr_1fr_1fr_1fr]">
+            <div>
+              <div className="flex items-center gap-2">
+                <BrandMark className="h-8 w-8" />
+                <Logo className="text-[24px]" />
+              </div>
+              <p className="mt-3 max-w-[300px] text-[12px] leading-[1.7] text-white/55">
+                {t.footDesc}
+              </p>
+            </div>
+
+            {t.cols.map((col) => (
+              <div key={col.h}>
+                <p className="text-[12px] font-semibold text-white/80">{col.h}</p>
+                <div className="mt-3 space-y-2">
+                  {col.links.map((link) => {
+                    const label = typeof link === 'string' ? link : link.label
+                    const href = typeof link === 'string' ? '#' : link.href
+                    return (
+                      <a
+                        key={label}
+                        href={href}
+                        className="block text-[11.5px] text-white/50 transition-colors hover:text-white"
+                      >
+                        {label}
+                      </a>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
 
-          {t.cols.map((col) => (
-            <div key={col.h}>
-              <h3 className="text-[12px] font-bold text-white">{col.h}</h3>
-              <ul className="mt-2 space-y-1.5">
-                {col.links.map((l) => (
-                  <li key={l.label ?? l}>
-                    <Link
-                      href={typeof l === 'string' ? '#' : l.href}
-                      className="inline-block text-[11.5px] text-white/65 transition-all duration-200 hover:translate-x-1 hover:text-white"
-                    >
-                      {typeof l === 'string' ? l : l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div className="mt-8 border-t border-white/10 pt-5 text-[11px] text-white/35">
+            {t.copyright}
+          </div>
         </div>
       </footer>
     </main>
   )
 }
-
-export default Home
