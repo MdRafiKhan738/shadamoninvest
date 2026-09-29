@@ -381,7 +381,7 @@ export default function Home() {
             >
               <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }} className="sm:w-[212px]">
                 <Link
-                  href={`${DASHBOARD_URL}?cat=investor`}
+                  href={`${DASHBOARD_URL}?source=invest-home&role=investor`}
                   className="group flex min-h-[62px] w-full items-center gap-3 rounded-xl bg-white px-4 shadow-[0_8px_28px_rgba(255,255,255,0.10)] transition-shadow hover:shadow-[0_12px_34px_rgba(140,120,255,0.35)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b7abf3]"
                 >
                   <TrendingUp
@@ -397,7 +397,7 @@ export default function Home() {
 
               <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }} className="sm:w-[212px]">
                 <Link
-                  href={`${DASHBOARD_URL}?cat=business_owner`}
+                  href={`${DASHBOARD_URL}?source=invest-home&role=business_owner`}
                   className="group flex min-h-[62px] w-full items-center gap-3 rounded-xl border border-[#6f5bd8] bg-[#136b50] px-4 transition-shadow hover:shadow-[0_12px_34px_rgba(19,107,80,0.55)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b7abf3]"
                 >
                   <Building2
